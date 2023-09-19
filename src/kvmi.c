@@ -2742,3 +2742,27 @@ int kvmi_free_gfn( void *dom, __u64 gfn )
 
 	return request( dom, KVMI_VCPU_FREE_GFN, &req, sizeof( req ), NULL, NULL );
 }
+
+int kvmi_create_ept_view( void *dom, unsigned short vcpu, unsigned short *view )
+{
+	struct kvmi_vcpu_hdr                   req = { .vcpu = vcpu };
+	struct kvmi_vcpu_create_ept_view_reply rpl;
+	int                                    err;
+	size_t                                 received = sizeof( rpl );
+
+	err = request( dom, KVMI_VCPU_CREATE_EPT_VIEW, &req, sizeof( req ), &rpl, &received );
+	if ( !err && view )
+		*view = rpl.view;
+
+	return err;
+}
+
+int kvmi_destroy_ept_view( void *dom, unsigned short vcpu, unsigned short view )
+{
+	struct {
+		struct kvmi_vcpu_hdr              vcpu;
+		struct kvmi_vcpu_destroy_ept_view cmd;
+	} req = { .vcpu = { .vcpu = vcpu }, .cmd = { .view = view } };
+
+	return request( dom, KVMI_VCPU_DESTROY_EPT_VIEW, &req, sizeof( req ), NULL, 0 );
+}
